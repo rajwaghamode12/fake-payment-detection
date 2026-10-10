@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.env
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Database (will be auto-created on deploy)
+# Uncomment below if you don't want to track the DB
+# database/database.db
+
+# Byte-compiled
+*.pyc
+
+# Reports (generated at runtime)
+reports/*.pdf
+reports/*.csv

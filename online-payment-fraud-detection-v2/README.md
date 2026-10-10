@@ -28,6 +28,7 @@ Online payment fraud costs billions of dollars globally every year. Traditional 
 
 | Feature | Description |
 |---|---|
+| Sender Balance Validation | Checks if sender has enough balance before AI fraud prediction |
 | ML Classification | Logistic Regression, Decision Tree, Random Forest, XGBoost |
 | Anomaly Detection | Isolation Forest flags statistically unusual transactions |
 | Behavioural Analysis | Historical profile comparison for each user |
@@ -349,3 +350,16 @@ This system is **not production-ready** without additional security review, HTTP
 ## Disclaimer
 
 This project is built for **academic and demonstration purposes only**. It uses entirely synthetic, randomly-generated data. No real card numbers, PINs, OTPs, bank passwords, or personal financial information are collected or processed. The risk thresholds shown are not official banking standards. This system should not be deployed in production without extensive security review, regulatory compliance (PCI DSS, RBI guidelines, etc.), and professional validation.
+
+## Test Cases
+
+### 1. Sufficient Balance (Proceeds to Fraud Detection)
+- **Sender Balance**: ₹50,000
+- **Transaction Amount**: ₹10,000
+- **Result**: Transaction is processed and sent to the ML risk engine.
+
+### 2. Insufficient Balance (Immediate Rejection)
+- **Sender Balance**: ₹5,000
+- **Transaction Amount**: ₹20,000
+- **Result**: Transaction Rejected: Insufficient Balance.
+

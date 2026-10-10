@@ -1,0 +1,2 @@
+# Root requirements - references subdirectory requirements
+-r online-payment-fraud-detection-v2/requirements.txt

@@ -70,7 +70,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     ENV = "production"
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False  # Railway terminates TLS at proxy level
 
 
 class TestingConfig(Config):
@@ -85,4 +85,6 @@ config_map = {
     "testing": TestingConfig,
 }
 
-ActiveConfig = config_map.get(os.environ.get("FLASK_ENV", "development"), DevelopmentConfig)
+_env = os.environ.get("FLASK_ENV") or os.environ.get("RAILWAY_ENVIRONMENT") or "development"
+ActiveConfig = config_map.get(_env, DevelopmentConfig)
+

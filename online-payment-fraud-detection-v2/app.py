@@ -327,6 +327,15 @@ def create_app() -> Flask:
 
             user_id = session["user_id"]
 
+            # ── Balance Validation ─────────────
+            if amount > sender_balance:
+                error_card = {
+                    "reason": "Insufficient Balance",
+                    "available_balance": sender_balance,
+                    "required_amount": amount
+                }
+                return render_template("transaction.html", form_data=request.form, error_card=error_card)
+
             # ── Velocity ──────────────────────
             vel = get_velocity(user_id)
 
@@ -1112,4 +1121,6 @@ def create_app() -> Flask:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_ENV", "development") == "development"
+    app.run(debug=debug, host="0.0.0.0", port=port)

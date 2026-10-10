@@ -13,3 +13,4 @@ seaborn==0.13.2
 reportlab==4.2.2
 python-dotenv==1.0.1
 wtforms==3.1.2
+gunicorn==23.0.0
