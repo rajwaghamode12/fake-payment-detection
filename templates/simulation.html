@@ -28,20 +28,49 @@
 
           <!-- Amount -->
           <div class="mb-3">
-            <label class="form-label"><i class="bi bi-currency-rupee me-1"></i>Transaction Amount (₹)</label>
-            <input type="number" name="amount" class="form-control" id="simAmount"
-                   min="100" value="{{ request.form.get('amount', 5000) }}" step="100"/>
-            <div class="form-text" id="amountHint"></div>
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-currency-rupee me-1 text-success"></i>Transaction Amount (₹)</span>
+              <span class="text-muted fs-xs">Type or click presets</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-success fw-bold">₹</span>
+              <input type="text" name="amount" class="form-control fw-600" id="simAmount"
+                     value="{{ request.form.get('amount', '5000') }}"/>
+            </div>
+            <div class="d-flex gap-1 mt-2 flex-wrap">
+              <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setSimAmount(500)">₹500</button>
+              <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setSimAmount(2500)">₹2,500</button>
+              <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setSimAmount(10000)">₹10,000</button>
+              <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setSimAmount(50000)">₹50,000</button>
+              <button type="button" class="btn btn-sm btn-dark border border-danger text-danger fs-xs py-0 px-2" onclick="setSimAmount(85000)">₹85,000 (Large)</button>
+            </div>
+            <div class="form-text mt-1" id="amountHint"></div>
           </div>
 
-          <!-- TX Type -->
-          <div class="mb-4">
-            <label class="form-label"><i class="bi bi-wallet2 me-1"></i>Transaction Type</label>
-            <select name="transaction_type" class="form-select">
-              {% for t in ['UPI','Card','Bank Transfer','Wallet','E-commerce'] %}
-              <option value="{{ t }}" {% if request.form.get('transaction_type') == t %}selected{% endif %}>{{ t }}</option>
-              {% endfor %}
-            </select>
+          <!-- TX Type & Time Row -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-wallet2 me-1"></i>Transaction Type</label>
+              <select name="transaction_type" class="form-select">
+                {% for t in ['UPI','Card','Bank Transfer','Wallet','E-commerce'] %}
+                <option value="{{ t }}" {% if request.form.get('transaction_type') == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock me-1 text-info"></i>Transaction Time</span>
+                <span class="text-muted fs-xs">Adjust hour</span>
+              </label>
+              <input type="time" name="transaction_time" id="simTime" class="form-control"
+                     value="{{ request.form.get('transaction_time', '14:30') }}" onchange="syncSimTime(this)">
+              <input type="hidden" name="transaction_hour" id="simHour"
+                     value="{{ request.form.get('transaction_hour', '14') }}">
+              <div class="d-flex gap-1 mt-1 flex-wrap">
+                <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setSimTime('14:30', 14, false)">Day (2:30 PM)</button>
+                <button type="button" class="btn btn-sm btn-dark border border-warning text-warning fs-xs py-0 px-2" onclick="setSimTime('02:30', 2, true)">Night (2:30 AM)</button>
+              </div>
+            </div>
           </div>
 
           <!-- Fraud Flags -->
@@ -301,9 +330,41 @@
 <script>
 function syncAmount(cb) {
   const amt = document.getElementById('simAmount');
-  if (cb.checked && parseInt(amt.value) < 80000) {
+  if (cb.checked && parseInt(String(amt.value).replace(/[^0-9]/g,'') || 0) < 80000) {
     amt.value = 80000;
   }
+  updatePreview();
+}
+
+function setSimAmount(val) {
+  const amt = document.getElementById('simAmount');
+  if (amt) {
+    amt.value = val;
+    const largeCb = document.querySelector('[name=large_amount]');
+    if (largeCb) largeCb.checked = (val >= 80000);
+    updatePreview();
+  }
+}
+
+function setSimTime(timeStr, hourInt, isNight) {
+  const tEl = document.getElementById('simTime');
+  const hEl = document.getElementById('simHour');
+  const timeCb = document.querySelector('[name=unusual_time]');
+  if (tEl) tEl.value = timeStr;
+  if (hEl) hEl.value = hourInt;
+  if (timeCb) timeCb.checked = isNight;
+  updatePreview();
+}
+
+function syncSimTime(input) {
+  const val = input.value;
+  if (!val) return;
+  const h = parseInt(val.split(':')[0], 10);
+  const hEl = document.getElementById('simHour');
+  if (hEl) hEl.value = h;
+  const isNight = (h >= 22 || h <= 5);
+  const timeCb = document.querySelector('[name=unusual_time]');
+  if (timeCb) timeCb.checked = isNight;
   updatePreview();
 }
 

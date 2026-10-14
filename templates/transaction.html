@@ -2,14 +2,19 @@
 {% block title %}Check Transaction{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-3">
+<div class="container-fluid px-4 py-3" style="max-width: 1350px;">
 
   <!-- Page Header -->
   <div class="page-header mb-4">
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div>
-        <h4><i class="bi bi-search me-2 text-accent"></i>Check Transaction</h4>
-        <p class="text-muted small mb-0">Enter simulated transaction details to analyze fraud risk. No real financial data required.</p>
+        <h4><i class="bi bi-shield-check me-2 text-accent"></i>Check Transaction</h4>
+        <p class="text-muted small mb-0">Enter transaction details below to run real-time AI fraud detection. All fields include smart defaults.</p>
+      </div>
+      <div>
+        <a href="{{ url_for('portal') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-grid me-1"></i>All-in-One Hub
+        </a>
       </div>
     </div>
   </div>
@@ -24,7 +29,10 @@
         <hr>
         <p class="mb-2"><strong>Reason:</strong> {{ error_card.reason }}</p>
         <p class="mb-1"><strong>Available Balance:</strong> ₹{{ "%.2f"|format(error_card.available_balance) }}</p>
-        <p class="mb-0"><strong>Required Amount:</strong> ₹{{ "%.2f"|format(error_card.required_amount) }}</p>
+        <p class="mb-2"><strong>Required Amount:</strong> ₹{{ "%.2f"|format(error_card.required_amount) }}</p>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="autoBalance()">
+          <i class="bi bi-magic me-1"></i>Auto-Fix Balance to ₹{{ "%.2f"|format(error_card.required_amount * 2) }}
+        </button>
       </div>
       {% endif %}
 
@@ -32,26 +40,43 @@
         <form method="POST" action="{{ url_for('check_transaction') }}" id="txForm" novalidate>
 
           <!-- Row 1: TX ID + Amount -->
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
+          <div class="row g-3 mb-4">
+            <div class="col-md-5">
               <label class="form-label"><i class="bi bi-hash me-1"></i>Transaction ID
-                <span class="text-muted">(optional, auto-generated if blank)</span>
+                <span class="text-muted fs-xs">(auto-generated if blank)</span>
               </label>
               <input type="text" name="transaction_id" class="form-control"
                      placeholder="e.g. TX10025"
                      value="{{ form_data.get('transaction_id','') }}"/>
             </div>
-            <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-currency-rupee me-1"></i>Transaction Amount (₹) <span class="text-danger">*</span></label>
-              <input type="number" name="amount" class="form-control" step="0.01" min="1"
-                     placeholder="e.g. 5000"
-                     value="{{ form_data.get('amount','') }}" required/>
+
+            <div class="col-md-7">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-currency-rupee me-1 text-success"></i>Transaction Amount (₹) <span class="text-danger">*</span></span>
+                <span class="text-muted fs-xs">Type any amount or click below</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-success fw-bold">₹</span>
+                <input type="text" name="amount" id="txAmount" class="form-control fs-5 fw-600"
+                       placeholder="e.g. 5000"
+                       value="{{ form_data.get('amount', '5000') }}" required autocomplete="off"/>
+              </div>
+
+              <!-- Quick Amount Selectors -->
+              <div class="d-flex gap-1 mt-2 flex-wrap align-items-center">
+                <span class="text-muted fs-xs me-1">Presets:</span>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setAmount(500)">₹500</button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setAmount(2500)">₹2,500</button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setAmount(10000)">₹10,000</button>
+                <button type="button" class="btn btn-sm btn-dark border border-warning text-warning fs-xs py-0 px-2" onclick="setAmount(50000)">₹50,000</button>
+                <button type="button" class="btn btn-sm btn-dark border border-danger text-danger fs-xs py-0 px-2" onclick="setAmount(95000)">₹95,000 (High)</button>
+              </div>
             </div>
           </div>
 
-          <!-- Row 2: Type + Hour -->
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
+          <!-- Row 2: Type + Time -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-5">
               <label class="form-label"><i class="bi bi-wallet2 me-1"></i>Transaction Type <span class="text-danger">*</span></label>
               <select name="transaction_type" class="form-select">
                 {% for t in ['UPI','Card','Bank Transfer','Wallet','E-commerce'] %}
@@ -59,28 +84,77 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-clock me-1"></i>Transaction Hour (0–23) <span class="text-danger">*</span></label>
-              <input type="number" name="transaction_hour" class="form-control"
-                     min="0" max="23" placeholder="e.g. 14 = 2 PM"
-                     value="{{ form_data.get('transaction_hour', '') }}" required/>
-              <div class="form-text" id="hourHint"></div>
+
+            <div class="col-md-7">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock me-1 text-info"></i>Transaction Time <span class="text-danger">*</span></span>
+                <span class="text-muted fs-xs">Select time or click quick presets</span>
+              </label>
+
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-info"><i class="bi bi-clock-history"></i></span>
+                <input type="time" name="transaction_time" id="txTime" class="form-control"
+                       value="{{ form_data.get('transaction_time', '14:30') }}" required/>
+                <input type="hidden" name="transaction_hour" id="txHour"
+                       value="{{ form_data.get('transaction_hour', '14') }}"/>
+              </div>
+
+              <!-- Live Hint text -->
+              <div class="form-text mt-1" id="hourHint">
+                <span class="text-info">2:30 PM (Normal Daytime Hour)</span>
+              </div>
+
+              <!-- Quick Time Preset Chips -->
+              <div class="d-flex gap-1 mt-2 flex-wrap align-items-center">
+                <span class="text-muted fs-xs me-1">Quick Time:</span>
+                <button type="button" class="btn btn-sm btn-dark border border-info text-info fs-xs py-0 px-2" onclick="setCurrentTime()">
+                  <i class="bi bi-lightning-fill me-1"></i>Now
+                </button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setTimePreset('10:00', 10)">
+                  ☀️ 10:00 AM (Morning)
+                </button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setTimePreset('14:30', 14)">
+                  ☕ 02:30 PM (Afternoon)
+                </button>
+                <button type="button" class="btn btn-sm btn-dark border border-warning text-warning fs-xs py-0 px-2" onclick="setTimePreset('02:30', 2)">
+                  🌙 02:30 AM (Midnight Risk)
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- Row 3: Balances -->
-          <div class="row g-3 mb-3">
+          <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-bank me-1"></i>Sender Balance (₹) <span class="text-danger">*</span></label>
-              <input type="number" name="sender_balance" class="form-control" step="0.01" min="0"
-                     placeholder="e.g. 25000"
-                     value="{{ form_data.get('sender_balance','') }}" required/>
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-bank me-1 text-accent"></i>Sender Balance (₹) <span class="text-danger">*</span></span>
+                <button type="button" class="btn btn-link p-0 text-accent fs-xs text-decoration-none" onclick="autoBalance()">
+                  <i class="bi bi-magic me-1"></i>Reset to Safe Balance
+                </button>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted">₹</span>
+                <input type="text" name="sender_balance" id="senderBalance" class="form-control"
+                       placeholder="e.g. 50000"
+                       value="{{ form_data.get('sender_balance', '50000') }}" required/>
+              </div>
+              <div class="form-check mt-1">
+                <input class="form-check-input" type="checkbox" id="testInsufficient" name="test_insufficient_balance" value="1" onchange="toggleInsufficient(this)">
+                <label class="form-check-label fs-xs text-muted" for="testInsufficient">
+                  Test "Insufficient Balance" rejection scenario
+                </label>
+              </div>
             </div>
+
             <div class="col-md-6">
               <label class="form-label"><i class="bi bi-bank2 me-1"></i>Receiver Balance (₹)</label>
-              <input type="number" name="receiver_balance" class="form-control" step="0.01" min="0"
-                     placeholder="e.g. 3000"
-                     value="{{ form_data.get('receiver_balance','0') }}"/>
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted">₹</span>
+                <input type="text" name="receiver_balance" id="receiverBalance" class="form-control"
+                       placeholder="e.g. 3000"
+                       value="{{ form_data.get('receiver_balance','5000') }}"/>
+              </div>
+              <div class="form-text fs-xs">Optional account balance of recipient</div>
             </div>
           </div>
 
@@ -110,14 +184,14 @@
               <label class="form-label"><i class="bi bi-list-ol me-1"></i>Previous Transaction Count</label>
               <input type="number" name="previous_transaction_count" class="form-control"
                      min="0" placeholder="e.g. 25"
-                     value="{{ form_data.get('previous_transaction_count','5') }}"/>
+                     value="{{ form_data.get('previous_transaction_count','15') }}"/>
             </div>
           </div>
 
           <!-- Row 6: Flags -->
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <label class="form-label"><i class="bi bi-flag me-1"></i>Risk Flags</label>
+              <label class="form-label"><i class="bi bi-flag me-1"></i>Risk Signals & Anomalies</label>
               <div class="row g-2">
                 <div class="col-md-6">
                   <div class="sim-flag-card">
@@ -128,7 +202,7 @@
                       <label class="form-check-label sim-label" for="newDevice">
                         <i class="bi bi-phone-vibrate me-1 text-warning"></i>
                         <strong>New Device</strong>
-                        <p class="text-muted fs-xs mb-0">Transaction from an unrecognised device</p>
+                        <p class="text-muted fs-xs mb-0">Transaction from an unrecognized device</p>
                       </label>
                     </div>
                   </div>
@@ -142,7 +216,7 @@
                       <label class="form-check-label sim-label" for="unusualLoc">
                         <i class="bi bi-geo me-1 text-warning"></i>
                         <strong>Unusual Location</strong>
-                        <p class="text-muted fs-xs mb-0">Location differs from typical pattern</p>
+                        <p class="text-muted fs-xs mb-0">Location differs from typical user profile</p>
                       </label>
                     </div>
                   </div>
@@ -151,8 +225,8 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-analyze w-100" id="analyzeBtn">
-            <i class="bi bi-cpu me-2"></i>ANALYZE TRANSACTION
+          <button type="submit" class="btn btn-analyze w-100 py-3 fw-700 fs-6 shadow-sm" id="analyzeBtn">
+            <i class="bi bi-cpu-fill me-2"></i>RUN AI FRAUD ANALYSIS
           </button>
         </form>
       </div>
@@ -160,56 +234,62 @@
 
     <!-- ── Info Sidebar ────────────────────────── -->
     <div class="col-lg-4">
+      <!-- Quick Test Scenarios -->
+      <div class="fs-card p-3 mb-3">
+        <div class="section-header mb-2">
+          <h5><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>One-Click Test Cases</h5>
+        </div>
+        <p class="text-muted fs-xs mb-3">Pre-fill the form with typical genuine or fraudulent transaction profiles:</p>
+        <div class="d-flex flex-column gap-2">
+          <button type="button" class="btn btn-outline-success btn-sm text-start py-2" onclick="fillSample('normal')">
+            <i class="bi bi-check-circle-fill text-success me-2"></i><strong>Normal Payment</strong>
+            <div class="fs-xs text-muted ps-4">₹1,500 · 2:30 PM · Trusted device & location</div>
+          </button>
+          <button type="button" class="btn btn-outline-warning btn-sm text-start py-2" onclick="fillSample('large')">
+            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><strong>Large High-Value Payment</strong>
+            <div class="fs-xs text-muted ps-4">₹85,000 · Afternoon · Elevated risk score</div>
+          </button>
+          <button type="button" class="btn btn-outline-danger btn-sm text-start py-2" onclick="fillSample('fraud')">
+            <i class="bi bi-shield-x text-danger me-2"></i><strong>Suspicious Midnight Attack</strong>
+            <div class="fs-xs text-muted ps-4">₹75,000 · 2:30 AM · New device + unusual location</div>
+          </button>
+        </div>
+      </div>
+
       <!-- How it works -->
       <div class="fs-card p-3 mb-3">
-        <div class="section-header"><h5><i class="bi bi-info-circle me-2 text-accent"></i>How It Works</h5></div>
-        <ol class="ps-3 mb-0" style="font-size:0.82rem;line-height:2;">
-          <li>Input is validated &amp; preprocessed</li>
-          <li>ML model predicts fraud probability</li>
-          <li>Isolation Forest checks for anomalies</li>
-          <li>Behaviour profile is compared</li>
-          <li>Transaction velocity is measured</li>
-          <li>Dynamic risk score (0–100) is computed</li>
-          <li>Explainable AI lists key reasons</li>
+        <div class="section-header mb-2"><h5><i class="bi bi-info-circle me-2 text-accent"></i>Multi-Layer AI Engine</h5></div>
+        <ol class="ps-3 mb-0" style="font-size:0.82rem;line-height:1.9;">
+          <li>Amount &amp; sender balance validation</li>
+          <li>Random Forest &amp; XGBoost classification</li>
+          <li>Isolation Forest statistical anomaly check</li>
+          <li>Historical user behavioural deviation</li>
+          <li>Velocity tracking (burst per hour)</li>
+          <li>Dynamic 0–100 calibrated risk scoring</li>
+          <li>Plain-language Explainable AI reasons</li>
         </ol>
       </div>
 
       <!-- Risk Levels guide -->
-      <div class="fs-card p-3 mb-3">
-        <div class="section-header"><h5><i class="bi bi-shield me-2 text-accent"></i>Risk Levels</h5></div>
-        <div class="d-flex flex-column gap-2">
-          <div class="d-flex align-items-center gap-2">
-            <span class="risk-badge risk-LOW">LOW</span>
-            <span class="text-muted fs-xs">Score 0–25 · Approve</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="risk-badge risk-MEDIUM">MEDIUM</span>
-            <span class="text-muted fs-xs">Score 26–50 · Review</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="risk-badge risk-HIGH">HIGH</span>
-            <span class="text-muted fs-xs">Score 51–75 · Alert</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="risk-badge risk-CRITICAL">CRITICAL</span>
-            <span class="text-muted fs-xs">Score 76–100 · Block</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sample test cases -->
       <div class="fs-card p-3">
-        <div class="section-header"><h5><i class="bi bi-lightning me-2 text-accent"></i>Quick Test Cases</h5></div>
+        <div class="section-header mb-2"><h5><i class="bi bi-shield-fill text-accent me-2"></i>Risk Thresholds</h5></div>
         <div class="d-flex flex-column gap-2">
-          <button class="btn btn-outline-secondary btn-sm text-start" onclick="fillSample('normal')">
-            <i class="bi bi-check-circle text-success me-2"></i>Normal Transaction
-          </button>
-          <button class="btn btn-outline-secondary btn-sm text-start" onclick="fillSample('large')">
-            <i class="bi bi-exclamation-triangle text-warning me-2"></i>Large Amount
-          </button>
-          <button class="btn btn-outline-secondary btn-sm text-start" onclick="fillSample('fraud')">
-            <i class="bi bi-shield-x text-danger me-2"></i>Suspicious Pattern
-          </button>
+          <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.2);">
+            <span class="risk-badge risk-LOW">LOW</span>
+            <span class="small fw-600">0 – 25 · Approved</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background:rgba(210,153,34,0.1);border:1px solid rgba(210,153,34,0.2);">
+            <span class="risk-badge risk-MEDIUM">MEDIUM</span>
+            <span class="small fw-600">26 – 50 · Flagged for Review</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background:rgba(240,136,62,0.1);border:1px solid rgba(240,136,62,0.2);">
+            <span class="risk-badge risk-HIGH">HIGH</span>
+            <span class="small fw-600">51 – 75 · High Alert</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.2);">
+            <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+            <span class="small fw-600">76 – 100 · Auto-Blocked</span>
+          </div>
         </div>
       </div>
     </div>
@@ -220,51 +300,140 @@
 
 {% block scripts %}
 <script>
-// Hour hint
-const hourInput = document.querySelector('[name=transaction_hour]');
+// Time & Hour synchronization
+const timeInput = document.getElementById('txTime');
+const hourInput = document.getElementById('txHour');
 const hourHint  = document.getElementById('hourHint');
-if (hourInput) {
-  hourInput.addEventListener('input', function() {
-    const h = parseInt(this.value);
-    if (isNaN(h)) { hourHint.textContent = ''; return; }
-    const ampm = h < 12 ? `${h===0?12:h} AM` : `${h===12?12:h-12} PM`;
-    const isNight = h >= 22 || h <= 5;
-    hourHint.innerHTML = `${ampm} ${isNight ? '<span class="text-warning">(Night hour — higher risk)</span>' : ''}`;
-  });
-  // Trigger on load
-  if (hourInput.value !== '') hourInput.dispatchEvent(new Event('input'));
+
+function updateTimeHint() {
+  if (!timeInput) return;
+  const timeVal = timeInput.value;
+  if (!timeVal) {
+    hourHint.innerHTML = '<span class="text-muted">Enter time above</span>';
+    return;
+  }
+  const parts = timeVal.split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) return;
+
+  if (hourInput) hourInput.value = h;
+
+  const ampm = h < 12 ? 'AM' : 'PM';
+  const displayH = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+  const isNight = h >= 22 || h <= 5;
+
+  if (isNight) {
+    hourHint.innerHTML = `<span class="text-warning fw-600"><i class="bi bi-moon-stars me-1"></i>${displayH}:${m} ${ampm} (Midnight / Odd Hour — Elevated Fraud Risk)</span>`;
+  } else {
+    hourHint.innerHTML = `<span class="text-success"><i class="bi bi-sun me-1"></i>${displayH}:${m} ${ampm} (Standard Business / Daytime Hour)</span>`;
+  }
 }
 
-// Analyze button loading state
+if (timeInput) {
+  timeInput.addEventListener('input', updateTimeHint);
+  timeInput.addEventListener('change', updateTimeHint);
+  updateTimeHint();
+}
+
+function setTimePreset(timeStr, hourInt) {
+  if (timeInput) timeInput.value = timeStr;
+  if (hourInput) hourInput.value = hourInt;
+  updateTimeHint();
+}
+
+function setCurrentTime() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  setTimePreset(`${hh}:${mm}`, now.getHours());
+}
+
+// Amount Presets and Auto-Balance
+function setAmount(val) {
+  const amtInput = document.getElementById('txAmount');
+  if (amtInput) {
+    amtInput.value = val;
+    autoBalance(val);
+  }
+}
+
+function autoBalance(explicitAmount) {
+  const amtInput = document.getElementById('txAmount');
+  const sbalInput = document.getElementById('senderBalance');
+  const insufficientCb = document.getElementById('testInsufficient');
+
+  if (insufficientCb && insufficientCb.checked) {
+    insufficientCb.checked = false;
+  }
+
+  const amt = explicitAmount || parseFloat(String(amtInput ? amtInput.value : 0).replace(/[^0-9.]/g, '')) || 5000;
+  if (sbalInput) {
+    sbalInput.value = Math.max(amt * 2, 50000);
+  }
+}
+
+function toggleInsufficient(cb) {
+  const amtInput = document.getElementById('txAmount');
+  const sbalInput = document.getElementById('senderBalance');
+  const amt = parseFloat(String(amtInput ? amtInput.value : 0).replace(/[^0-9.]/g, '')) || 5000;
+
+  if (cb.checked) {
+    // Set balance lower than amount
+    if (sbalInput) sbalInput.value = Math.max(amt - 1000, 500);
+  } else {
+    autoBalance(amt);
+  }
+}
+
+// Loading state on submit
 document.getElementById('txForm').addEventListener('submit', function() {
   const btn = document.getElementById('analyzeBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing…';
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running AI Models…';
 });
 
 // Quick test samples
 function fillSample(type) {
   const f = document.getElementById('txForm');
   if (type === 'normal') {
-    f.amount.value = 1500; f.transaction_type.value = 'UPI';
-    f.transaction_hour.value = 14; f.sender_balance.value = 20000;
-    f.receiver_balance.value = 5000; f.location.value = 'Mumbai';
-    f.device_type.value = 'Mobile'; f.previous_transaction_count.value = 30;
-    f.new_device.checked = false; f.unusual_location.checked = false;
+    document.getElementById('txAmount').value = 1500;
+    f.transaction_type.value = 'UPI';
+    setTimePreset('14:30', 14);
+    document.getElementById('senderBalance').value = 25000;
+    document.getElementById('receiverBalance').value = 5000;
+    f.location.value = 'Mumbai';
+    f.device_type.value = 'Mobile';
+    f.previous_transaction_count.value = 30;
+    document.getElementById('newDevice').checked = false;
+    document.getElementById('unusualLoc').checked = false;
+    document.getElementById('testInsufficient').checked = false;
   } else if (type === 'large') {
-    f.amount.value = 95000; f.transaction_type.value = 'Bank Transfer';
-    f.transaction_hour.value = 3; f.sender_balance.value = 105000;
-    f.receiver_balance.value = 200; f.location.value = 'Delhi';
-    f.device_type.value = 'Desktop'; f.previous_transaction_count.value = 2;
-    f.new_device.checked = true; f.unusual_location.checked = true;
+    document.getElementById('txAmount').value = 85000;
+    f.transaction_type.value = 'Bank Transfer';
+    setTimePreset('15:00', 15);
+    document.getElementById('senderBalance').value = 120000;
+    document.getElementById('receiverBalance').value = 1500;
+    f.location.value = 'Delhi';
+    f.device_type.value = 'Desktop';
+    f.previous_transaction_count.value = 5;
+    document.getElementById('newDevice').checked = false;
+    document.getElementById('unusualLoc').checked = false;
+    document.getElementById('testInsufficient').checked = false;
   } else {
-    f.amount.value = 78000; f.transaction_type.value = 'Card';
-    f.transaction_hour.value = 2; f.sender_balance.value = 85000;
-    f.receiver_balance.value = 100; f.location.value = 'Kolkata';
-    f.device_type.value = 'Tablet'; f.previous_transaction_count.value = 1;
-    f.new_device.checked = true; f.unusual_location.checked = true;
+    document.getElementById('txAmount').value = 75000;
+    f.transaction_type.value = 'Card';
+    setTimePreset('02:30', 2);
+    document.getElementById('senderBalance').value = 85000;
+    document.getElementById('receiverBalance').value = 100;
+    f.location.value = 'Kolkata';
+    f.device_type.value = 'Tablet';
+    f.previous_transaction_count.value = 1;
+    document.getElementById('newDevice').checked = true;
+    document.getElementById('unusualLoc').checked = true;
+    document.getElementById('testInsufficient').checked = false;
   }
-  if (hourInput) hourInput.dispatchEvent(new Event('input'));
+  updateTimeHint();
 }
 </script>
 {% endblock %}

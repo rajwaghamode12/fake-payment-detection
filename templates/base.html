@@ -43,6 +43,21 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link {% if request.endpoint in ['check_transaction', 'result'] %}active{% endif %}" href="{{ url_for('check_transaction') }}">
+            <i class="bi bi-shield-check me-1"></i>Check Transaction
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'simulation' %}active{% endif %}" href="{{ url_for('simulation') }}">
+            <i class="bi bi-flask me-1"></i>Simulation Lab
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'history' %}active{% endif %}" href="{{ url_for('history') }}">
+            <i class="bi bi-clock-history me-1"></i>Transactions
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link {% if request.endpoint == 'review_queue' %}active{% endif %}" href="{{ url_for('review_queue') }}">
             <i class="bi bi-clipboard-check me-1"></i>Review Queue
           </a>
@@ -61,6 +76,15 @@
             <li><a class="dropdown-item" href="{{ url_for('retrain') }}"><i class="bi bi-arrow-repeat me-2"></i>Retrain Model</a></li>
             <li><a class="dropdown-item" href="{{ url_for('drift_page') }}"><i class="bi bi-activity me-2"></i>Drift Detection</a></li>
             <li><a class="dropdown-item" href="{{ url_for('feedback_page') }}"><i class="bi bi-chat-square-text me-2"></i>Feedback</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-graph-up me-1"></i>Analysis
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><a class="dropdown-item" href="{{ url_for('geo_risk') }}"><i class="bi bi-geo-alt me-2"></i>Geographic Risk</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('graph_analysis') }}"><i class="bi bi-diagram-3 me-2"></i>Graph Analysis</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -110,6 +134,11 @@
         <li class="nav-item">
           <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">
             <i class="bi bi-info-circle me-1"></i>About
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'portal' %}active{% endif %}" href="{{ url_for('portal') }}">
+            <i class="bi bi-grid-fill me-1 text-accent"></i>All-in-One Hub
           </a>
         </li>
       </ul>

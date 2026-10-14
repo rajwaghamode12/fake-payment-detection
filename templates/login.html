@@ -62,6 +62,21 @@
         </div>
       </div>
     </div>
+
+    <!-- 1-Click Fast Access Links -->
+    <div class="mt-3 text-center">
+      <a href="{{ url_for('portal') }}" class="btn btn-outline-info btn-sm w-100 py-2">
+        <i class="bi bi-grid-fill me-1"></i>Open All-in-One Quick Access Hub
+      </a>
+      <div class="d-flex gap-2 mt-2">
+        <a href="{{ url_for('quick_login', role='admin') }}" class="btn btn-dark border border-secondary btn-sm flex-fill">
+          <i class="bi bi-shield-shaded me-1 text-accent"></i>1-Click Admin
+        </a>
+        <a href="{{ url_for('quick_login', role='user') }}" class="btn btn-dark border border-secondary btn-sm flex-fill">
+          <i class="bi bi-person-fill me-1 text-success"></i>1-Click User
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

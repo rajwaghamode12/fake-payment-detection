@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% block title %}All-in-One Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4" style="max-width: 1380px;">
+
+  <!-- Hero Header -->
+  <div class="p-4 p-md-5 rounded-4 mb-4 text-center" style="background: radial-gradient(circle at 50% 0%, rgba(88, 166, 255, 0.15) 0%, rgba(22, 27, 34, 0.8) 75%); border: 1px solid rgba(88, 166, 255, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 68px; height: 68px; border-radius: 50%; background: rgba(88, 166, 255, 0.15); border: 1px solid var(--accent); color: var(--accent); font-size: 2rem;">
+      <i class="bi bi-shield-lock-fill"></i>
+    </div>
+    <h1 class="fw-800 text-white mb-2" style="font-size: 2.4rem;">
+      FraudShield <span class="text-accent">AI</span> All-in-One Hub
+    </h1>
+    <p class="text-muted mx-auto mb-4" style="max-width: 650px; font-size: 1.05rem;">
+      Unified master access portal for AI-powered payment fraud detection, simulation lab, risk analytics, and model telemetry.
+    </p>
+
+    <!-- 1-Click Quick Access Action Buttons -->
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+      <a href="{{ url_for('quick_login', role='admin') }}" class="btn btn-primary px-4 py-2 fw-600 rounded-pill shadow-sm">
+        <i class="bi bi-shield-shaded me-2"></i>1-Click Login as Admin
+      </a>
+      <a href="{{ url_for('quick_login', role='user') }}" class="btn btn-outline-info px-4 py-2 fw-600 rounded-pill shadow-sm">
+        <i class="bi bi-person-badge me-2"></i>1-Click Login as User
+      </a>
+      <a href="{{ url_for('check_transaction') }}" class="btn btn-success px-4 py-2 fw-600 rounded-pill shadow-sm">
+        <i class="bi bi-shield-check me-2"></i>Check Transaction
+      </a>
+      <a href="{{ url_for('simulation') }}" class="btn btn-outline-light px-4 py-2 fw-600 rounded-pill shadow-sm">
+        <i class="bi bi-flask me-2"></i>Simulation Lab
+      </a>
+    </div>
+
+    <!-- Active Session Indicator -->
+    <div class="mt-3">
+      {% if session.get('user_id') %}
+        <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-2">
+          <i class="bi bi-person-check-fill me-1"></i>Logged in as: <strong>{{ session.get('name') }}</strong> ({{ session.get('role') | upper }})
+          <a href="{{ url_for('logout') }}" class="text-danger ms-2 text-decoration-none"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </span>
+      {% else %}
+        <span class="badge bg-secondary bg-opacity-25 text-muted border border-secondary px-3 py-2">
+          <i class="bi bi-person-dash me-1"></i>Currently Not Logged In — Click any 1-Click button above for instant session
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── GRID SECTION 1: CORE OPERATIONAL TOOLS ──────────────── -->
+  <h5 class="fw-700 text-white mb-3 d-flex align-items-center">
+    <i class="bi bi-grid-fill text-accent me-2"></i>Core Detection & Testing Tools
+  </h5>
+
+  <div class="row g-3 mb-4">
+    <!-- Card 1: Check Transaction -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-success bg-opacity-25 text-success border border-success">Primary Tool</span>
+            <i class="bi bi-shield-check fs-4 text-success"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Check Transaction</h6>
+          <p class="text-muted small mb-3">Input custom parameters (amount, hour, device, IP location) and receive an instant multi-layer AI risk assessment.</p>
+        </div>
+        <a href="{{ url_for('check_transaction') }}" class="btn btn-outline-success btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Open Scanner
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 2: Simulation Lab -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-info bg-opacity-25 text-info border border-info">Interactive Lab</span>
+            <i class="bi bi-flask fs-4 text-info"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Fraud Simulation Lab</h6>
+          <p class="text-muted small mb-3">One-click test vectors for simulated attack vectors like High-Value Bursts, SIM Swapping, and Midnight Foreign IP access.</p>
+        </div>
+        <a href="{{ url_for('simulation') }}" class="btn btn-outline-info btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Launch Simulation
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 3: Admin Master Dashboard -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary">Admin Only</span>
+            <i class="bi bi-speedometer2 fs-4 text-primary"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Admin Dashboard</h6>
+          <p class="text-muted small mb-3">System-wide metrics, overall fraud percentage, volume distribution charts, and rapid review links.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='admin_dashboard') }}" class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Open Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 4: Transaction History -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-secondary bg-opacity-25 text-light border border-secondary">Audit Trail</span>
+            <i class="bi bi-clock-history fs-4 text-secondary"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Transaction History</h6>
+          <p class="text-muted small mb-3">Browse all recorded transactions with multi-criteria filtering by prediction, risk level, and keyword search.</p>
+        </div>
+        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>View History
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GRID SECTION 2: ADVANCED ANALYTICS & VISUALIZATION ──── -->
+  <h5 class="fw-700 text-white mb-3 d-flex align-items-center">
+    <i class="bi bi-diagram-3-fill text-warning me-2"></i>Visual Analytics & Network Intelligence
+  </h5>
+
+  <div class="row g-3 mb-4">
+    <!-- Card 5: Geographic Risk -->
+    <div class="col-md-6 col-lg-4">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning">Geo Intel</span>
+            <i class="bi bi-geo-alt fs-4 text-warning"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Geographic Risk Distribution</h6>
+          <p class="text-muted small mb-3">Visualize regional fraud rates, high-risk locations, and geographic risk weightings across cities and countries.</p>
+        </div>
+        <a href="{{ url_for('geo_risk') }}" class="btn btn-outline-warning btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Open Geo View
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 6: Graph Analysis -->
+    <div class="col-md-6 col-lg-4">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-accent bg-opacity-25 text-accent border border-info">Network Graph</span>
+            <i class="bi bi-diagram-3 fs-4 text-accent"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Graph Relationship Analysis</h6>
+          <p class="text-muted small mb-3">Interactive network map of sender-receiver relationships, money mules, and rapid laundering rings.</p>
+        </div>
+        <a href="{{ url_for('graph_analysis') }}" class="btn btn-outline-info btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Explore Graph
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 7: Live Monitoring -->
+    <div class="col-md-6 col-lg-4">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Real-Time</span>
+            <i class="bi bi-broadcast fs-4 text-danger"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Live Telemetry & Stream</h6>
+          <p class="text-muted small mb-3">Real-time live monitoring ticker showcasing inbound transactions, velocity spikes, and anomaly alerts.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='monitoring') }}" class="btn btn-outline-danger btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Open Monitoring
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GRID SECTION 3: MLOps, REVIEWS & COMPLIANCE ─────────── -->
+  <h5 class="fw-700 text-white mb-3 d-flex align-items-center">
+    <i class="bi bi-cpu-fill text-danger me-2"></i>MLOps, Governance & Compliance
+  </h5>
+
+  <div class="row g-3 mb-4">
+    <!-- Card 8: Review Queue -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">HITL</span>
+            <i class="bi bi-clipboard-check fs-4 text-danger"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Manual Review Queue</h6>
+          <p class="text-muted small mb-3">Human-in-the-loop workflow for compliance officers to approve, block, or reclassify suspicious flagged transactions.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='review_queue') }}" class="btn btn-outline-danger btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Review Queue
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 9: Model Performance -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary">Metrics</span>
+            <i class="bi bi-bar-chart fs-4 text-primary"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Model Performance</h6>
+          <p class="text-muted small mb-3">ROC-AUC curves, Precision-Recall tradeoffs, Confusion Matrix, and model benchmark stats.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='model_performance') }}" class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>View Metrics
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 10: Drift Detection -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning">Drift</span>
+            <i class="bi bi-activity fs-4 text-warning"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Data Drift Analysis</h6>
+          <p class="text-muted small mb-3">Statistical monitoring (PSI & KS tests) tracking shifts between training distribution and live inference data.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='drift_page') }}" class="btn btn-outline-warning btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Check Drift
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 11: Retrain Model -->
+    <div class="col-md-6 col-lg-3">
+      <div class="fs-card h-100 p-3 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-success bg-opacity-25 text-success border border-success">Self-Learning</span>
+            <i class="bi bi-arrow-repeat fs-4 text-success"></i>
+          </div>
+          <h6 class="fw-700 text-white mb-1">Model Retraining Studio</h6>
+          <p class="text-muted small mb-3">Incorporate human feedback into dataset and trigger model retraining with automated safety gates.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='retrain') }}" class="btn btn-outline-success btn-sm w-100">
+          <i class="bi bi-arrow-right-circle me-1"></i>Retrain Studio
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GRID SECTION 4: EXPORTS, AUDIT & SYSTEM DOCUMENTATION ─ -->
+  <h5 class="fw-700 text-white mb-3 d-flex align-items-center">
+    <i class="bi bi-file-earmark-text-fill text-info me-2"></i>Reports, Documentation & Exports
+  </h5>
+
+  <div class="row g-3 mb-4">
+    <!-- Card 12: PDF Report -->
+    <div class="col-md-4">
+      <div class="fs-card p-3 h-100 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <h6 class="fw-700 text-white mb-1"><i class="bi bi-file-pdf text-danger me-2"></i>Executive PDF Report</h6>
+          <p class="text-muted small mb-3">Generate a multi-page PDF compliance and fraud audit report generated on the fly via ReportLab.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='api_report_pdf') }}" class="btn btn-outline-danger btn-sm w-100">
+          <i class="bi bi-download me-1"></i>Download PDF
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 13: CSV Export -->
+    <div class="col-md-4">
+      <div class="fs-card p-3 h-100 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <h6 class="fw-700 text-white mb-1"><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>Raw CSV Export</h6>
+          <p class="text-muted small mb-3">Download complete dataset of recorded transactions, risk scores, and model classifications in CSV format.</p>
+        </div>
+        <a href="{{ url_for('quick_login', role='admin', next='api_report_csv') }}" class="btn btn-outline-success btn-sm w-100">
+          <i class="bi bi-download me-1"></i>Download CSV
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 14: System About & Architecture -->
+    <div class="col-md-4">
+      <div class="fs-card p-3 h-100 d-flex flex-column justify-content-between hover-card">
+        <div>
+          <h6 class="fw-700 text-white mb-1"><i class="bi bi-info-circle text-info me-2"></i>System Architecture & Viva Guide</h6>
+          <p class="text-muted small mb-3">Detailed breakdown of the 6-stage AI pipeline, model choices, synthetic dataset generation, and viva Q&A.</p>
+        </div>
+        <a href="{{ url_for('about') }}" class="btn btn-outline-info btn-sm w-100">
+          <i class="bi bi-journal-text me-1"></i>Read About & Docs
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MASTER DIRECTORY ACCORDION ──────────────────────────── -->
+  <div class="fs-card p-4 rounded-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-700 text-white mb-0">
+        <i class="bi bi-list-columns-reverse text-accent me-2"></i>Complete Route & API Directory
+      </h6>
+      <span class="badge bg-dark border border-secondary text-muted">25+ System Routes</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0 small">
+        <thead class="text-muted border-secondary">
+          <tr>
+            <th>Endpoint Name</th>
+            <th>Direct Link</th>
+            <th>HTTP Method</th>
+            <th>Access Level</th>
+          </tr>
+        </thead>
+        <tbody class="border-secondary">
+          <tr><td>Check Transaction Form</td><td><a href="{{ url_for('check_transaction') }}" class="text-accent">/check-transaction</a></td><td><code>GET, POST</code></td><td><span class="badge bg-info bg-opacity-25 text-info">User / Admin</span></td></tr>
+          <tr><td>Simulation Lab</td><td><a href="{{ url_for('simulation') }}" class="text-accent">/simulation</a></td><td><code>GET, POST</code></td><td><span class="badge bg-info bg-opacity-25 text-info">User / Admin</span></td></tr>
+          <tr><td>Admin Dashboard</td><td><a href="{{ url_for('admin_dashboard') }}" class="text-accent">/admin</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>User Dashboard</td><td><a href="{{ url_for('dashboard') }}" class="text-accent">/dashboard</a></td><td><code>GET</code></td><td><span class="badge bg-info bg-opacity-25 text-info">User Only</span></td></tr>
+          <tr><td>Transaction History</td><td><a href="{{ url_for('history') }}" class="text-accent">/history</a></td><td><code>GET</code></td><td><span class="badge bg-info bg-opacity-25 text-info">User / Admin</span></td></tr>
+          <tr><td>Geographic Risk</td><td><a href="{{ url_for('geo_risk') }}" class="text-accent">/geo-risk</a></td><td><code>GET</code></td><td><span class="badge bg-info bg-opacity-25 text-info">User / Admin</span></td></tr>
+          <tr><td>Graph Network Analysis</td><td><a href="{{ url_for('graph_analysis') }}" class="text-accent">/graph-analysis</a></td><td><code>GET</code></td><td><span class="badge bg-info bg-opacity-25 text-info">User / Admin</span></td></tr>
+          <tr><td>Manual Review Queue</td><td><a href="{{ url_for('review_queue') }}" class="text-accent">/admin/review</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Live Telemetry</td><td><a href="{{ url_for('monitoring') }}" class="text-accent">/admin/monitoring</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Model Performance</td><td><a href="{{ url_for('model_performance') }}" class="text-accent">/admin/model-performance</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Data Drift Monitor</td><td><a href="{{ url_for('drift_page') }}" class="text-accent">/admin/drift</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Model Retraining</td><td><a href="{{ url_for('retrain') }}" class="text-accent">/admin/retrain</a></td><td><code>GET, POST</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Feedback Loop</td><td><a href="{{ url_for('feedback_page') }}" class="text-accent">/admin/feedback</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Security Alerts</td><td><a href="{{ url_for('alerts') }}" class="text-accent">/alerts</a></td><td><code>GET</code></td><td><span class="badge bg-info bg-opacity-25 text-info">User / Admin</span></td></tr>
+          <tr><td>About & Documentation</td><td><a href="{{ url_for('about') }}" class="text-accent">/about</a></td><td><code>GET</code></td><td><span class="badge bg-secondary bg-opacity-25 text-light">Public</span></td></tr>
+          <tr><td>PDF Export API</td><td><a href="{{ url_for('api_report_pdf') }}" class="text-accent">/api/report/pdf</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>CSV Export API</td><td><a href="{{ url_for('api_report_csv') }}" class="text-accent">/api/report/csv</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Real-Time Polling API</td><td><a href="{{ url_for('api_monitoring_live') }}" class="text-accent">/api/monitoring/live</a></td><td><code>GET</code></td><td><span class="badge bg-danger bg-opacity-25 text-danger">Admin Only</span></td></tr>
+          <tr><td>Global Statistics API</td><td><a href="{{ url_for('api_statistics') }}" class="text-accent">/api/statistics</a></td><td><code>GET</code></td><td><span class="badge bg-secondary bg-opacity-25 text-light">Public</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.hover-card {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: var(--radius);
+}
+.hover-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px rgba(88, 166, 255, 0.15);
+}
+</style>
+{% endblock %}
