@@ -62,10 +62,17 @@
                 <span><i class="bi bi-clock me-1 text-info"></i>Transaction Time</span>
                 <span class="text-muted fs-xs">Adjust hour</span>
               </label>
-              <input type="time" name="transaction_time" id="simTime" class="form-control"
-                     value="{{ request.form.get('transaction_time', '14:30') }}" onchange="syncSimTime(this)">
-              <input type="hidden" name="transaction_hour" id="simHour"
-                     value="{{ request.form.get('transaction_hour', '14') }}">
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-info"><i class="bi bi-clock-history"></i></span>
+                <input type="time" name="transaction_time" id="simTime" class="form-control"
+                       value="{{ request.form.get('transaction_time', '14:30') }}" onchange="syncSimTime(this)">
+                <input type="hidden" name="transaction_hour" id="simHour"
+                       value="{{ request.form.get('transaction_hour', '14') }}">
+                <div class="btn-group" role="group" aria-label="Meridiem AM/PM">
+                  <button type="button" class="btn btn-outline-info fw-bold px-3" id="simBtnAM" onclick="setSimMeridiem('AM')">AM</button>
+                  <button type="button" class="btn btn-info fw-bold text-dark px-3" id="simBtnPM" onclick="setSimMeridiem('PM')">PM</button>
+                </div>
+              </div>
               <div class="d-flex gap-1 mt-1 flex-wrap">
                 <button type="button" class="btn btn-sm btn-dark border border-secondary fs-xs py-0 px-2" onclick="setSimTime('14:30', 14, false)">Day (2:30 PM)</button>
                 <button type="button" class="btn btn-sm btn-dark border border-warning text-warning fs-xs py-0 px-2" onclick="setSimTime('02:30', 2, true)">Night (2:30 AM)</button>
@@ -346,6 +353,40 @@ function setSimAmount(val) {
   }
 }
 
+function updateSimButtons(h) {
+  const btnAM = document.getElementById('simBtnAM');
+  const btnPM = document.getElementById('simBtnPM');
+  if (btnAM && btnPM) {
+    if (h < 12) {
+      btnAM.className = 'btn btn-info fw-bold text-dark px-3';
+      btnPM.className = 'btn btn-outline-info fw-bold px-3';
+    } else {
+      btnPM.className = 'btn btn-info fw-bold text-dark px-3';
+      btnAM.className = 'btn btn-outline-info fw-bold px-3';
+    }
+  }
+}
+
+function setSimMeridiem(meridiem) {
+  const tEl = document.getElementById('simTime');
+  if (!tEl) return;
+  const timeVal = tEl.value || '12:00';
+  const parts = timeVal.split(':');
+  let h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) h = 12;
+
+  if (meridiem === 'AM') {
+    if (h >= 12) h -= 12;
+  } else if (meridiem === 'PM') {
+    if (h < 12) h += 12;
+  }
+
+  const hh = String(h).padStart(2, '0');
+  tEl.value = `${hh}:${m}`;
+  syncSimTime(tEl);
+}
+
 function setSimTime(timeStr, hourInt, isNight) {
   const tEl = document.getElementById('simTime');
   const hEl = document.getElementById('simHour');
@@ -353,11 +394,12 @@ function setSimTime(timeStr, hourInt, isNight) {
   if (tEl) tEl.value = timeStr;
   if (hEl) hEl.value = hourInt;
   if (timeCb) timeCb.checked = isNight;
+  updateSimButtons(hourInt);
   updatePreview();
 }
 
 function syncSimTime(input) {
-  const val = input.value;
+  const val = input ? input.value : document.getElementById('simTime')?.value;
   if (!val) return;
   const h = parseInt(val.split(':')[0], 10);
   const hEl = document.getElementById('simHour');
@@ -365,6 +407,7 @@ function syncSimTime(input) {
   const isNight = (h >= 22 || h <= 5);
   const timeCb = document.querySelector('[name=unusual_time]');
   if (timeCb) timeCb.checked = isNight;
+  updateSimButtons(h);
   updatePreview();
 }
 
@@ -405,5 +448,6 @@ document.getElementById('simForm').addEventListener('submit', function() {
 
 // Init preview on load if form has values
 updatePreview();
+updateSimButtons(parseInt(document.getElementById('simHour')?.value || 14, 10));
 </script>
 {% endblock %}

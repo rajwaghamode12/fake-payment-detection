@@ -124,9 +124,29 @@
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label text-muted">Transaction Hour (0–23)</label>
-                  <input type="number" id="txHour" class="form-control bg-dark text-white border-secondary" value="2" min="0" max="23" required />
-                  <div class="form-text text-muted">Hours between 01:00 AM and 05:00 AM increase risk</div>
+                  <label class="form-label text-muted d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clock me-1 text-info"></i>Transaction Time</span>
+                    <span class="badge bg-warning bg-opacity-25 text-warning border border-warning" id="txTimeBadge">02:30 AM (Night Risk)</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-info"><i class="bi bi-clock-history"></i></span>
+                    <input type="number" id="txHour12" class="form-control bg-dark text-white border-secondary" value="2" min="1" max="12" placeholder="Hour" oninput="syncClientTime()" title="12-Hour format (1 to 12)" />
+                    <span class="input-group-text bg-dark border-secondary text-muted">:</span>
+                    <input type="number" id="txMinute" class="form-control bg-dark text-white border-secondary" value="30" min="0" max="59" placeholder="Min" oninput="syncClientTime()" title="Minutes (0 to 59)" />
+                    <select id="txAmPm" class="form-select bg-dark text-info border-secondary fw-bold" style="max-width: 95px;" onchange="syncClientTime()">
+                      <option value="AM" selected>AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                  <input type="hidden" id="txHour" value="2" />
+                  
+                  <!-- Quick Preset Buttons with AM / PM -->
+                  <div class="d-flex gap-1 mt-2 flex-wrap align-items-center">
+                    <span class="text-muted small me-1">Quick:</span>
+                    <button type="button" class="btn btn-sm btn-dark border border-secondary py-0 px-2 small" onclick="setClientPreset(10, 0, 'AM')">☀️ 10:00 AM</button>
+                    <button type="button" class="btn btn-sm btn-dark border border-secondary py-0 px-2 small" onclick="setClientPreset(2, 30, 'PM')">☕ 02:30 PM</button>
+                    <button type="button" class="btn btn-sm btn-dark border border-warning text-warning py-0 px-2 small" onclick="setClientPreset(2, 30, 'AM')">🌙 02:30 AM (Risk)</button>
+                  </div>
                 </div>
               </div>
 
@@ -407,25 +427,71 @@
       }
     }
 
+    function syncClientTime() {
+      let h12 = parseInt(document.getElementById('txHour12').value, 10);
+      if (isNaN(h12) || h12 < 1) h12 = 12;
+      if (h12 > 12) h12 = 12;
+      document.getElementById('txHour12').value = h12;
+
+      let min = parseInt(document.getElementById('txMinute').value, 10);
+      if (isNaN(min) || min < 0) min = 0;
+      if (min > 59) min = 59;
+      const minPad = String(min).padStart(2, '0');
+
+      const ampm = document.getElementById('txAmPm').value;
+      let h24 = h12 % 12;
+      if (ampm === 'PM') h24 += 12;
+
+      document.getElementById('txHour').value = h24;
+      
+      const badge = document.getElementById('txTimeBadge');
+      const timeStr = `${String(h12).padStart(2, '0')}:${minPad} ${ampm}`;
+      if (badge) {
+        if (h24 >= 1 && h24 <= 5) {
+          badge.className = 'badge bg-warning bg-opacity-25 text-warning border border-warning';
+          badge.innerHTML = `<i class="bi bi-moon-stars me-1"></i>${timeStr} (Night Risk)`;
+        } else {
+          badge.className = 'badge bg-success bg-opacity-25 text-success border border-success';
+          badge.innerHTML = `<i class="bi bi-sun me-1"></i>${timeStr} (Daytime Normal)`;
+        }
+      }
+    }
+
+    function setClientPreset(h12, min, ampm) {
+      document.getElementById('txHour12').value = h12;
+      document.getElementById('txMinute').value = min;
+      document.getElementById('txAmPm').value = ampm;
+      syncClientTime();
+      evaluateFraud();
+    }
+
     function loadSample(type) {
       if (type === 'fraud') {
         document.getElementById('txAmount').value = 75000;
-        document.getElementById('txHour').value = 3;
+        document.getElementById('txHour12').value = 3;
+        document.getElementById('txMinute').value = 30;
+        document.getElementById('txAmPm').value = 'AM';
         document.getElementById('senderBal').value = 10000;
         document.getElementById('txLoc').value = 'Foreign/High-Risk';
         document.getElementById('txDevice').value = 'Unknown Device';
       } else {
         document.getElementById('txAmount').value = 1200;
-        document.getElementById('txHour').value = 14;
+        document.getElementById('txHour12').value = 2;
+        document.getElementById('txMinute').value = 30;
+        document.getElementById('txAmPm').value = 'PM';
         document.getElementById('senderBal').value = 25000;
         document.getElementById('txLoc').value = 'Mumbai';
         document.getElementById('txDevice').value = 'Mobile';
       }
+      syncClientTime();
       evaluateFraud();
     }
 
-    // Initialize Charts on Load
+    // Initialize Charts & Time on Load
     window.onload = function() {
+      syncClientTime();
+      evaluateFraud();
+
       const ctxPie = document.getElementById('chartPie').getContext('2d');
       new Chart(ctxPie, {
         type: 'doughnut',
@@ -440,7 +506,7 @@
       new Chart(ctxBar, {
         type: 'bar',
         data: {
-          labels: ['00:00','03:00','06:00','09:00','12:00','15:00','18:00','21:00'],
+          labels: ['12 AM','03 AM','06 AM','09 AM','12 PM','03 PM','06 PM','09 PM'],
           datasets: [{ label: 'Fraud Incidents', data: [18, 34, 4, 2, 5, 3, 6, 12], backgroundColor: '#f85149' }]
         },
         options: { scales: { x: { ticks: { color: '#7d8590' } }, y: { ticks: { color: '#7d8590' } } }, plugins: { legend: { labels: { color: '#e6edf3' } } } }

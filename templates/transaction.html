@@ -97,6 +97,10 @@
                        value="{{ form_data.get('transaction_time', '14:30') }}" required/>
                 <input type="hidden" name="transaction_hour" id="txHour"
                        value="{{ form_data.get('transaction_hour', '14') }}"/>
+                <div class="btn-group" role="group" aria-label="Meridiem AM/PM">
+                  <button type="button" class="btn btn-outline-info fw-bold px-3" id="btnAM" onclick="setMeridiem('AM')">AM</button>
+                  <button type="button" class="btn btn-info fw-bold text-dark px-3" id="btnPM" onclick="setMeridiem('PM')">PM</button>
+                </div>
               </div>
 
               <!-- Live Hint text -->
@@ -323,11 +327,42 @@ function updateTimeHint() {
   const displayH = h === 0 ? 12 : (h > 12 ? h - 12 : h);
   const isNight = h >= 22 || h <= 5;
 
+  const btnAM = document.getElementById('btnAM');
+  const btnPM = document.getElementById('btnPM');
+  if (btnAM && btnPM) {
+    if (h < 12) {
+      btnAM.className = 'btn btn-info fw-bold text-dark px-3';
+      btnPM.className = 'btn btn-outline-info fw-bold px-3';
+    } else {
+      btnPM.className = 'btn btn-info fw-bold text-dark px-3';
+      btnAM.className = 'btn btn-outline-info fw-bold px-3';
+    }
+  }
+
   if (isNight) {
     hourHint.innerHTML = `<span class="text-warning fw-600"><i class="bi bi-moon-stars me-1"></i>${displayH}:${m} ${ampm} (Midnight / Odd Hour — Elevated Fraud Risk)</span>`;
   } else {
     hourHint.innerHTML = `<span class="text-success"><i class="bi bi-sun me-1"></i>${displayH}:${m} ${ampm} (Standard Business / Daytime Hour)</span>`;
   }
+}
+
+function setMeridiem(meridiem) {
+  if (!timeInput) return;
+  const timeVal = timeInput.value || '12:00';
+  const parts = timeVal.split(':');
+  let h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) h = 12;
+
+  if (meridiem === 'AM') {
+    if (h >= 12) h -= 12;
+  } else if (meridiem === 'PM') {
+    if (h < 12) h += 12;
+  }
+
+  const hh = String(h).padStart(2, '0');
+  timeInput.value = `${hh}:${m}`;
+  updateTimeHint();
 }
 
 if (timeInput) {
